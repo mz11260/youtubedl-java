@@ -152,7 +152,7 @@ public class Youku extends Common implements URLParser {
 			return Jsoup.connect(url)
 					.headers(setHeaders())
 					.cookies(this.cookies)
-					.timeout(10000).ignoreContentType(true).execute();
+					.timeout(TIMEOUT).ignoreContentType(true).execute();
 		} catch (IOException e) {
 			throw e;
 		}
@@ -170,7 +170,7 @@ public class Youku extends Common implements URLParser {
         			.cookies(this.cookies)
         			.headers(setHeaders())
         			.header("Referer", this.referer)// Referer header必须设置
-                    .timeout(10000).ignoreContentType(false).execute();
+                    .timeout(TIMEOUT).ignoreContentType(false).execute();
             return response.body();
         } catch (IOException e) {
             throw e;

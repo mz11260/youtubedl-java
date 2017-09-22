@@ -34,57 +34,70 @@ import java.util.regex.Pattern;
  * http://api.tv.sohu.com/v4/album/videos/5102665.json?callback=jsonpx1505721636182_40_13&page=27&site=1&with_trailer=1
  * &with_fee_video=3&with_prevideo=1&prevideo_rule=1&api_key=695fe827ffeb7d74260a813025970bd5&page_size=30&order=0&_=1505721636182
  *
- * 这两个连接干嘛的？ 被限速是否与此有关
- * http://score.my.tv.sohu.com/digg/get.do?vid=2892496&type=16&tvid=82975713&_=1505873846105
+ * 获取后请求这3个链接
  *
- * http://m.aty.sohu.com/h?pt=15577|15067&poscode=15577|15067&plat=h3&sysver=9.1&c=tv&cat=1&vc=115103&pn=iphone&al=9103260&ag=&st=&site=1&ar=6&vu=&
- * tuv=1505873845992691&appid=tv&type=vrs&vid=2892496&lid=&tvid=82975713&pageUrl=http://m.tv.sohu.com/20160218/n437663719.shtml&du=394.722&partner=11060001&
- * playstyle=&useragent=Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1&_=1505873846135
+ * http://z.m.tv.sohu.com/pv.gif?url=http://m.tv.sohu.com/20170622/n600017924.shtml&refer=http://tv.sohu.com/20170622/n600017924.shtml
+ * &uid=1506047517550801&webtype=&screen=414x736&catecode=115103;115104;115106;115112&pid=5102665
+ * &vid=3825783&tvid=90230528&os=ios&platform=iphone&passport=&t=1506047517680&channeled=1211010000&oth=&cd=&MTV_SRC=11060001&sd=
+ * cookies
+ * SUV=1506047517550801;_muid_=1506047517550938;MTV_SRC=11060001;SOHUSVP=G1LrWmsz7fC2gQv1LItkPewB0JRvDCjvlJS11-5kDTE
  *
- * http://pv.sohu.com/suv/?t?=1505900053040386_414_736?r?=http://tv.sohu.com/20170622/n600017924.shtml
- * http://m.tv.sohu.com/h5/coopauth/1106.json?callback=jsonpx1505899308171_16_11&platform=3&vid=3825783&pid=5102665&play=832&site=1&cid=16&video_type=1&isSohu=0&_=1505899308171
+ * http://sohu.irs01.com/irt?_iwt_UA=UA-sohu-000001&jsonp=_410RZ
+ *
+ * http://z.m.tv.sohu.com/h5_cc.gif?t=1506047517736&uid=1506047517550801&position=page_adbanner&op=click&details={}&nid=600017924
+ * &url=http://m.tv.sohu.com/20170622/n600017924.shtml&refer=http://tv.sohu.com/20170622/n600017924.shtml&screen=414x736
+ * &os=ios&platform=iphone&passport=&vid=3825783&pid=5102665&channeled=1211010000&MTV_SRC=11060001
+ *
  */
 public class Sohu extends Common implements URLParser {
-
-    private static final String API_URL = "http://m.tv.sohu.com/phone_playinfo?vid=%s&site=1&appid=tv&api_key=f351515304020cad28c92f70f002261c" +
-            "&plat=17&sver=1.0&partner=1&uid=%s&muid=%s&_c=1&pt=3&qd=680&src=11060001&_=%s";
-
-    private static final String SCORE_URL = "http://score.my.tv.sohu.com/digg/get.do?vid=%s&type=%s&tvid=%s&_=%s";
-    private static final String ATY_URL = "http://m.aty.sohu.com/h?pt=15577|15067&poscode=15577|15067&plat=h3&sysver=9.1&c=tv&cat=1&vc=%s&pn=iphone&al=%s&ag=&st=&site=1&" +
-            "ar=6&vu=&tuv=%s&appid=tv&type=vrs&vid=%s&lid=&tvid=%s&pageUrl=%s&du=%s&partner=11060001&playstyle=&useragent=%s&_=%s";
 
     private static final String USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1";
     private String time;
     private String uid;
     private String muid;
     private String srcURL;
+    private String screen = "414x736";
 
     private Map<String, String> cookies;
 
+    private static final String API_URL = "http://m.tv.sohu.com/phone_playinfo?vid=%s&site=1&appid=tv&api_key=f351515304020cad28c92f70f002261c" +
+            "&plat=17&sver=1.0&partner=1&uid=%s&muid=%s&_c=1&pt=3&qd=680&src=11060001&_=%s";
+
+    private static final String PV_URL = "http://z.m.tv.sohu.com/pv.gif?url=%s&refer=%s&uid=%s&webtype=&screen=%s&catecode=%s" +
+            "&pid=%s&vid=%s&tvid=%s&os=ios&platform=iphone&passport=&t=%s&channeled=%s&oth=&cd=&MTV_SRC=11060001&sd=";
+
+    private static final String IRT_URL = "http://sohu.irs01.com/irt?_iwt_UA=UA-sohu-000001&jsonp=_410RZ";
+
+    private static final String ATY_URL = "http://z.m.tv.sohu.com/h5_cc.gif?t=%s&uid=%s&position=page_adbanner&op=click&details={}&nid=%s" +
+            "&url=%s&refer=%s&screen=%s&os=ios&platform=iphone&passport=&vid=%s&pid=%s&channeled=%s&MTV_SRC=11060001";
+
     @Override
     public ResultData parse(String url) {
+        this.srcURL = url;
         ResultData resultData = new ResultData();
         url = url.replace("http://tv", "http://m.tv");
-        this.srcURL = url;
         try {
             String html = this.getHtmlDocument(url).outerHtml();
+
             this.uid = getMuid();
             JsonObject videoData = this.parserJsonObject(matchVideoData(html));
             String vid = videoData.get("vid").getAsString();
             this.muid = getMuid();
             initCookies();
-            String tvid = videoData.get("tvid").getAsString();
-            String cid = videoData.get("cid").getAsString();
-            this.getResponseJson(String.format(SCORE_URL, vid, cid, tvid, String.valueOf(System.currentTimeMillis())));
+
             String cateCode = videoData.get("cateCode").getAsString();
-            String playTime = videoData.get("playTime").getAsString();
-            String sid = videoData.get("sid").getAsString();
-            this.sendRequest(String.format(ATY_URL, cateCode, sid, uid, vid, tvid, url, playTime, USER_AGENT, String.valueOf(System.currentTimeMillis())));
+            String pid = videoData.get("pid").getAsString();
+            String tvid = videoData.get("tvid").getAsString();
+            String channeled = videoData.get("channeled").getAsString();
+            String nid = videoData.get("nid").getAsString();
 
             this.time = String.valueOf(System.currentTimeMillis());
             String apiUrl = String.format(API_URL, vid, uid, muid, time);
+
             String json = this.getResponseJson(apiUrl);
+            System.out.println(json);
             JsonObject data = this.parserJsonObject(json).getAsJsonObject("data");
+
             if (data != null && !data.isJsonNull()) {
                 JsonObject urls = data.getAsJsonObject("urls");
                 if (urls != null && !urls.isJsonNull()) {
@@ -110,7 +123,14 @@ public class Sohu extends Common implements URLParser {
                             video.setPlayUrl(array.get(0).getAsString());
                             videos.add(video);
                         }
+                        sort(videos);
                         resultData.setVideos(videos);
+
+                        // 获取成功后依次请求 大概是认证SOHUSVP参数
+                        sendRequest(String.format(PV_URL, url, srcURL, uid, screen, cateCode, pid, vid, tvid, String.valueOf(System.currentTimeMillis()), channeled));
+                        sendRequest(IRT_URL);
+                        sendRequest(String.format(ATY_URL, String.valueOf(System.currentTimeMillis()), uid, nid, url, srcURL, screen, vid, pid, channeled));
+
                         return resultData;
                     }
                 }
@@ -124,24 +144,6 @@ public class Sohu extends Common implements URLParser {
         return resultData;
     }
 
-
-
-    public static void main(String[] args) throws IOException {
-        Sohu sohu = new Sohu();
-            String url = "http://tv.sohu.com/20170622/n600017924.shtml";
-        ResultData data = sohu.parse(url);
-        Error e = data.getError();
-        if (e == null) {
-            List<Video> list = data.getVideos();
-            for (Video v : list) {
-                System.out.println(v.toString());
-            }
-        } else {
-            System.out.println(e.getNote());
-            System.out.println(e.getCode());
-        }
-    }
-
     /**
      * 请求JSON
      * @param url
@@ -153,7 +155,13 @@ public class Sohu extends Common implements URLParser {
             Connection.Response response = Jsoup.connect(url)
                     .headers(setHeaders())
                     .cookies(this.cookies)
-                    .timeout(10000).ignoreContentType(true).execute();
+                    .timeout(TIMEOUT).ignoreContentType(true).execute();
+            Map<String, String> cookies = response.cookies();
+            if (cookies != null && !cookies.isEmpty()) {
+                if (cookies.containsKey("SOHUSVP")) {
+                    this.cookies.put("SOHUSVP", cookies.get("SOHUSVP"));
+                }
+            }
             return response.body();
         } catch (IOException e) {
             throw e;
@@ -162,10 +170,22 @@ public class Sohu extends Common implements URLParser {
 
     private void sendRequest(String url) throws IOException {
         try {
-            Jsoup.connect(url)
-                    .headers(setHeaders())
-                    .header("Referer", srcURL)
-                    .timeout(10000).ignoreContentType(true).execute();
+            Map<String, String> headers = setHeaders();
+            headers.put("Connection", "keep-alive");
+            headers.put("Pragma", "no-cache");
+            headers.put("Cache-Control", "no-cache");
+            headers.put("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
+            headers.put("Referer", srcURL.replace("http://tv", "http://m.tv"));
+            if (url.contains("sohu.irs01.com")) {
+                Jsoup.connect(url)
+                        .headers(headers)
+                        .timeout(TIMEOUT).ignoreContentType(true).execute();
+            } else {
+                Jsoup.connect(url)
+                        .headers(headers)
+                        .cookies(this.cookies)
+                        .timeout(TIMEOUT).ignoreContentType(true).execute();
+            }
         } catch (IOException e) {
             throw e;
         }
@@ -188,7 +208,7 @@ public class Sohu extends Common implements URLParser {
     public Document getHtmlDocument(String url) throws IOException {
         return Jsoup.connect(url)
                 .headers(setHeaders())
-                .timeout(10000).get();
+                .timeout(TIMEOUT).get();
     }
 
     @Override
@@ -219,9 +239,9 @@ public class Sohu extends Common implements URLParser {
     private String setHdtv(String streamType) {
         if ("sup".equals(streamType)) {
             return "h1";
-        } else if ("nor".equals(streamType)) {
-            return "h2";
         } else if ("hig".equals(streamType)) {
+            return "h2";
+        } else if ("nor".equals(streamType)) {
             return "h3";
         } else {
             return "h1";

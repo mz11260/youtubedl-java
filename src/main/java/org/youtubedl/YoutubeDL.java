@@ -1,10 +1,7 @@
 package org.youtubedl;
 
 
-import org.youtubedl.extractor.Iqiyi;
-import org.youtubedl.extractor.LeEco;
-import org.youtubedl.extractor.Mgtv;
-import org.youtubedl.extractor.Youku;
+import org.youtubedl.extractor.*;
 import org.youtubedl.pojo.Error;
 import org.youtubedl.pojo.ResultData;
 import org.youtubedl.pojo.Video;
@@ -25,6 +22,7 @@ public class YoutubeDL {
 	private final static String YOUKU = "youku.com";
 	private final static String IQIYI = "iqiyi.com";
 	private final static String MGTV = "mgtv.com";
+	private final static String SOHU = "sohu.com";
 	
 	public static ResultData parser(String url) {
 		
@@ -46,6 +44,8 @@ public class YoutubeDL {
 			parser = new Iqiyi();
 		} else if (domain.contains(MGTV)) {
 			parser = new Mgtv();
+		} else if (domain.contains(SOHU)) {
+			parser = new Sohu();
 		} else {
 			ResultData resultData = new ResultData();
 			resultData.setError(new Error(500, "不支持的URL"));

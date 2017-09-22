@@ -3,6 +3,7 @@ package org.youtubedl.extractor;
 import java.io.IOException;
 import java.util.*;
 
+import org.omg.CORBA.TIMEOUT;
 import org.youtubedl.pojo.Video;
 import org.jsoup.Jsoup;
 import org.jsoup.Connection.Response;
@@ -13,7 +14,9 @@ import org.jsoup.nodes.Document;
 
 public class Common {
 
-	
+	protected final static int TIMEOUT = 30000;
+
+
 	/**
 	 * 设置请求 header
 	 * @return
@@ -37,7 +40,7 @@ public class Common {
         try {
         	return Jsoup.connect(url)
         			.headers(setHeaders())
-                    .timeout(10000).ignoreContentType(true).execute();
+                    .timeout(TIMEOUT).ignoreContentType(true).execute();
         } catch (IOException e) {
             throw e;
         }
@@ -52,7 +55,7 @@ public class Common {
         try {
         	Response response = Jsoup.connect(url)
         			.headers(setHeaders())
-                    .timeout(10000).ignoreContentType(true).execute();
+                    .timeout(TIMEOUT).ignoreContentType(true).execute();
             return response.body();
         } catch (IOException e) {
             throw e;
@@ -78,7 +81,7 @@ public class Common {
 	protected Document getHtmlDocument(String url) throws IOException {
 		return Jsoup.connect(url)
 				.headers(setHeaders())
-				.timeout(10000).get();
+				.timeout(TIMEOUT).get();
 	}
 
 	/**
