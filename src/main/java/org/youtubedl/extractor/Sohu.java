@@ -79,6 +79,13 @@ public class Sohu extends Common implements URLParser {
         try {
             String html = this.getHtmlDocument(url).outerHtml();
 
+            if (html.contains("<meta property=\"og:title\" content=\"404 not found\"> ")
+                    || html.contains("<meta property=\"og:desc\" content=\"404 not found\">")) {
+                resultData.setError(new Error(404, "404 page not found"));
+                resultData.setVideos(null);
+                return resultData;
+            }
+
             this.uid = getMuid();
             JsonObject videoData = this.parserJsonObject(matchVideoData(html));
             String vid = videoData.get("vid").getAsString();
@@ -95,7 +102,6 @@ public class Sohu extends Common implements URLParser {
             String apiUrl = String.format(API_URL, vid, uid, muid, time);
 
             String json = this.getResponseJson(apiUrl);
-            System.out.println(json);
             JsonObject data = this.parserJsonObject(json).getAsJsonObject("data");
 
             if (data != null && !data.isJsonNull()) {
