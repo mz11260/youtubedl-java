@@ -2,10 +2,7 @@ package org.youtubedl.extractor;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,6 +10,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.youtubedl.URLParser;
 import org.youtubedl.pojo.Error;
 import org.youtubedl.pojo.ResultData;
@@ -28,38 +26,48 @@ public class Mgtv extends Common implements URLParser {
 
 	private static final String apiUrl = "http://pcweb.api.mgtv.com/player/video?video_id=%s&cid=%s&keepPlay=0&vid=&watchTime=0";
 	private static final String GUID_URL = "http://guid.mgtv.com/pc/distribute.do";
+	private static final String LOGIN_USER = "http://u.api.mgtv.com/user/get_login_user?_=%s";
 
 	private String guid;
 	private String __guid;
 	private String stkuuid;
+	private long actionTime;
+	private String sessionid;
+	private Map<String, String> cookies;
 
 
 	@Override
 	public ResultData parse(String url) {
 		final ResultData resultData = new ResultData();
-		__guid = getGUid(GUID_URL);
-		this.stkuuid = UUID.randomUUID().toString();
-		String vid = matchVid(url);
-		String cid = matchCid(url);
-		guid = getGUid(GUID_URL);
-		/**
-		 * cookies
-		 * __STKUUID=0df95871-eecf-4011-9441-45c5493c4089;
-		 * MQGUID=912254546565664768;
-		 * Hm_lvt_7ed5b39fd087844c0268537a47e35211=1506333377;
-		 * Hm_lpvt_7ed5b39fd087844c0268537a47e35211=1506333377;
-		 * __MQGUID=912254546477584384;
-		 * lastActionTime=1506333377729
-		 */
 
-		// 拼装请求地址
-		String api = String.format(apiUrl, vid, cid);
 		try {
+			// 请求
+			__guid = getGUid(GUID_URL);
+			this.stkuuid = UUID.randomUUID().toString();
+			if (cookies == null) {
+				cookies = new HashMap<String, String>();
+			}
+			sessionid = String.valueOf(System.currentTimeMillis());
+			cookies.put("__STKUUID", stkuuid);
+			cookies.put("sessionid", sessionid);
+			cookies.put("lastActionTime", String.valueOf(System.currentTimeMillis()));
+			// 请求sessionid
+			sendRequest(String.format(LOGIN_USER, String.valueOf(System.currentTimeMillis())));
+
+			String vid = matchVid(url);
+			String cid = matchCid(url);
+			guid = getGUid(GUID_URL);
+			actionTime = System.currentTimeMillis();
+
+			// 拼装请求地址
+			String api = String.format(apiUrl, vid, cid);
+
+			initCookies();
+
 			String responseJson = getResponseJson(api);
 			JsonObject json = parserJsonObject(responseJson);
 			JsonObject data = json.getAsJsonObject("data");
 
-			System.out.println(json.toString());
 			if (data != null && !data.isJsonNull()) {
 				List<Video> videos = new ArrayList<Video>();
 				String domain = data.getAsJsonArray("stream_domain").get(0).getAsString();
@@ -84,6 +92,8 @@ public class Mgtv extends Common implements URLParser {
 					if (streamURL == null || "".equals(streamURL)) {
 						continue;
 					}
+					String chk = UUID.randomUUID().toString().replace("-", "");
+					streamURL += "&ver=0.2.12943&chk=" + chk + "&ld" + sessionid;
 					String urlData = getResponseJson(domain + streamURL);
 					JsonObject urlJson = parserJsonObject(urlData);
 					video.setPlayUrl(urlJson.get("info").getAsString());
@@ -102,6 +112,56 @@ public class Mgtv extends Common implements URLParser {
 			resultData.setVideos(null);
 			return resultData;
 		}
+	}
+
+	private void sendRequest(String url) throws IOException {
+		try {
+			Jsoup.connect(url)
+					.headers(setHeaders())
+					.cookies(this.cookies)
+					.timeout(TIMEOUT).ignoreContentType(true).execute();
+		} catch (IOException e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * 请求JSON
+	 * @param url
+	 * @return
+	 */
+	@Override
+	public String getResponseJson(String url) throws IOException {
+		try {
+			Connection.Response response = Jsoup.connect(url)
+					.headers(setHeaders())
+					.cookies(cookies)
+					.timeout(TIMEOUT).ignoreContentType(true).execute();
+			return response.body();
+		} catch (IOException e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * cookies
+	 * __STKUUID=0df95871-eecf-4011-9441-45c5493c4089;
+	 * MQGUID=912254546565664768;
+	 * Hm_lvt_7ed5b39fd087844c0268537a47e35211=1506333377;
+	 * Hm_lpvt_7ed5b39fd087844c0268537a47e35211=1506333377;
+	 * __MQGUID=912254546477584384;
+	 * lastActionTime=1506333377729
+	 *
+	 */
+	private void initCookies() {
+		if (cookies == null) {
+			this.cookies = new HashMap<String, String>();
+		}
+		cookies.put("MQGUID", guid);
+		cookies.put("Hm_lvt_7ed5b39fd087844c0268537a47e35211", String.valueOf(actionTime/1000));
+		cookies.put("Hm_lpvt_7ed5b39fd087844c0268537a47e35211", String.valueOf(actionTime/1000));
+		cookies.put("__MQGUID", __guid);
+		cookies.put("lastActionTime", String.valueOf(actionTime));
 	}
 
 	
@@ -145,10 +205,6 @@ public class Mgtv extends Common implements URLParser {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	public static void main(String[] args) {
-		System.out.println(UUID.randomUUID());
 	}
 
 }
