@@ -74,7 +74,7 @@ public class Iqiyi extends Common implements URLParser {
 				video.setSize(0);
 				video.setStreamType(obj.get("vd").getAsString());
 				video.setVideoMilliseconds(duration * 1000);
-				video.setHdtv(FORMAT_MAP.get(video.getStreamType()));
+				video.setHdtv(FORMAT_MAP.get(video.getStreamType()) == null ? "h3" : FORMAT_MAP.get(video.getStreamType()));
 				videos.add(video);
 			}
 			sort(videos);
@@ -135,6 +135,7 @@ public class Iqiyi extends Common implements URLParser {
 		FORMAT_MAP.put("5", "h2");  // 1072p, 1080p
 		FORMAT_MAP.put("4", "h3");  // 720p
 		FORMAT_MAP.put("17", "h3"); // 720p
+		FORMAT_MAP.put("14", "h3"); // 720p
 		FORMAT_MAP.put("21", "h4"); // 504p
 		FORMAT_MAP.put("2", "h5");  // 480p, 504p
 		FORMAT_MAP.put("1", "h6");  // 336p, 360p
