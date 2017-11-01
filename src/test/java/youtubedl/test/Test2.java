@@ -18,8 +18,10 @@ public class Test2 {
 		/*test();
 		testList();*/
 		String[] urls = new String[]{
-				//"http://www.iqiyi.com/v_19rrb3xn68.html",
-				"http://www.mgtv.com/b/316387/4103109.html"
+				"http://v.youku.com/v_show/id_XMjY0MzY0MDM4OA==.html"
+				//"http://v.youku.com/v_show/id_XMTgyNTgwODQ0MA==.html"
+				//"http://www.iqiyi.com/v_19rrkdlco0.html"
+				//"http://www.mgtv.com/b/316387/4103109.html"
 				//"http://v.youku.com/v_show/id_XNTQwMTgxMTE2.html",
 				//"http://www.le.com/ptv/vplay/832992.html"
 		        //"http://tv.sohu.com/20170616/n600005453.shtml"

@@ -28,7 +28,7 @@ import org.jsoup.Connection.Response;
  */
 public class Youku extends Common implements URLParser {
 	
-	private static String playApi = "https://ups.youku.com/ups/get.json?vid=%s&ccode=0402&client_ip=192.168.1.1&utid=%s&client_ts=%s";
+	private static String playApi = "https://ups.youku.com/ups/get.json?vid=%s&ccode=0401&client_ip=192.168.1.1&utid=%s&client_ts=%s";
 	private static String utidURL = "https://log.mmstat.com/eg.js";
 
 	private String referer = "http://v.youku.com";
