@@ -6,7 +6,7 @@
 
     <groupId>org.youtubedl</groupId>
     <artifactId>youtubedl-java</artifactId>
-    <version>20171206</version>
+    <version>0.0.51</version>
     <packaging>jar</packaging>
 
     <name>youtubedl-java</name>
