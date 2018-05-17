@@ -10,6 +10,7 @@ import org.youtubedl.pojo.Video;
 import org.youtubedl.pojo.Error;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,10 +29,12 @@ import org.jsoup.Connection.Response;
  */
 public class Youku extends Common implements URLParser {
 	
-	private static String playApi = "https://ups.youku.com/ups/get.json?vid=%s&ccode=0508&client_ip=192.168.1.1&utid=%s&client_ts=%s";
+	private static String playApi = "https://ups.youku.com/ups/get.json?vid=%s&ccode=0590&client_ip=192.168.1.1&utid=%s&client_ts=%s";
 	private static String utidURL = "https://log.mmstat.com/eg.js";
 
 	private String referer = "http://v.youku.com";
+
+	private String ckey = "DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND";
 
 	private Map<String, String> cookies;
 
@@ -91,6 +94,10 @@ public class Youku extends Common implements URLParser {
 			resultData.setError(new Error(500, e.getMessage()));
 			resultData.setVideos(null);
 			return resultData;
+		} catch (Exception e) {
+			resultData.setError(new Error(500, e.getMessage()));
+			resultData.setVideos(null);
+			return resultData;
 		}
 	}
 
@@ -113,8 +120,8 @@ public class Youku extends Common implements URLParser {
      * @param vid
      * @return
      */
-    private String getPlayRequestUrl(String vid, String utid) {
-        return String.format(playApi, vid, utid, String.valueOf(new Date().getTime() / 1000));
+    private String getPlayRequestUrl(String vid, String utid) throws Exception {
+        return String.format(playApi, vid, utid, String.valueOf(new Date().getTime() / 1000), URLEncoder.encode(ckey, "utf-8"));
     }
 
 	/**
@@ -149,9 +156,12 @@ public class Youku extends Common implements URLParser {
 	@Override
 	protected Response getResponse(String url) throws IOException {
 		try {
+
 			return Jsoup.connect(url)
-					.headers(setHeaders())
-					.cookies(this.cookies)
+					.header("Referer", referer)
+					.header("User-Agent", "'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36")
+					//.headers(setHeaders())
+					//.cookies(this.cookies)
 					.timeout(TIMEOUT).ignoreContentType(true).execute();
 		} catch (IOException e) {
 			throw e;
@@ -183,7 +193,7 @@ public class Youku extends Common implements URLParser {
      */
     private void initCookies() {
     	this.cookies = new HashMap<String, String>();
-    	cookies.put("__ysuid", getYsuid(3));
+    	//cookies.put("__ysuid", getYsuid(3));
     	cookies.put("xreferrer", "http://www.youku.com");
     }
     
